@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta content='width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0' name='viewport' />
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="Dashkata button" />
+  <meta name="twitter:description" content="Instant button that plays songs fron Dashkata's channel" />
+  <meta name="twitter:image" content="https://tgeorgiev.github.io/lmstdr/screen.png" />
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="Dashkata button" />
+  <meta property="og:description" content="Instant button that plays songs fron Dashkata's channel" />
+  <meta property="og:image" content="https://tgeorgiev.github.io/lmstdr/screen.png" />
+  <link rel="icon" type="image/png" href="favicon.png" sizes="32x32">
+
+  <title>Dashkata button</title>
+  <style type="text/css">
+    html, body, .container, .container .player-holder {
+      margin: 0;
+      width: 100%;
+      height: 100%;
+    }
+    body {
+      font-family: "HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
+    }
+
+    .container .player-holder {
+      overflow: hidden;
+      pointer-events: none;
+      transition: all 0.5s ease-out;
+      -webkit-clip-path: circle(0% at center);
+      clip-path: circle(0% at center);
+    }
+
+    .container.active .player-holder {
+      -webkit-clip-path: circle(100% at center);
+      clip-path: circle(100% at center);
+    }
+
+    .container.active .btn {
+      opacity: 0.5;
+    }
+
+    .container.no-touch.active .btn:hover {
+      opacity: 1;
+    }
+
+    /* Nice 3d buttons thanks to https://css-tricks.com/circular-3d-buttons/
+    */
+    .btn {
+      display: block;
+      cursor: pointer;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+
+      background-color: #f7f7f7;
+      background-image: -webkit-gradient(linear, left top, left bottom, from(#f7f7f7), to(#e7e7e7));
+      background-image: -webkit-linear-gradient(top, #f7f7f7, #e7e7e7);
+      background-image: -moz-linear-gradient(top, #f7f7f7, #e7e7e7);
+      background-image: -ms-linear-gradient(top, #f7f7f7, #e7e7e7);
+      background-image: -o-linear-gradient(top, #f7f7f7, #e7e7e7);
+      color: #a7a7a7;
+      margin-left: -70px;
+      margin-top: -70px;
+      width: 140px;
+      height: 140px;
+      text-align: center;
+      border-radius: 50%;
+      box-shadow: 0px 3px 8px #aaa, inset 0px 2px 3px #fff;
+
+      -webkit-touch-callout: none;
+      -webkit-user-select: none;
+      -khtml-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
+      user-select: none;
+    }
+
+    .btn .primary {
+      font-size: 70px;
+      margin-top: 28px;
+    }
+
+    .btn:hover {
+      text-decoration: none;
+      color: #555;
+      background: #f5f5f5;
+    }
+
+    .btn:active {
+      box-shadow: none;
+    }
+
+    .btn:before {
+      content: "";
+      display: block;
+      position: absolute;
+      top: -18px;
+      left: -18px;
+      bottom: -18px;
+      right: -18px;
+      border-radius: 50%;
+      box-shadow: inset 0px 8px 60px #ddd;
+    }
+
+    .container .description {
+      position: absolute;
+      top: 50%;
+      left: 0;
+      right: 0;
+      margin-top: 80px;
+      text-align: center;
+    }
+
+    .container.active .description {
+      display: none;
+    }
+
+    .loading-content {
+      display: none;
+    }
+
+  </style>
+
+</head>
+<body>
+  <div class="container">
+    <div class="description">
+      <p>
+        <b>Dashkata button</b> - the instant party starter.
+      </p>
+      <p>
+        Everytime you reload the page, а random song from <a href="https://www.youtube.com/channel/UCvsg3sSokpIJhnwu5zlfG9w">Dashkata's channel</a> will load.
+      </p>
+      <p class="loading-title">
+        Loading...
+      </p>
+      <p class="loading-content">
+        Currently loaded song:  <a id="currentVideo"></a>
+      </p>
+      <p class="loading-content">
+        What are you waiting for? Hit that D button!
+      </p>
+    </div>
+    <div class="player-holder">
+      <div id="player"></div>
+    </div>
+    <a class="btn">
+      <div class="primary">D</div>
+    </a>
+  </div>
+  <script type="text/javascript">
+    var allVideos = [
+      {id: 'fzHB7qGabSI', seekTime: 3.70},
+      {id: 'A-4E7rQTZ2c', seekTime: 7.50},
+      {id: '8LN9d7xWKMM', seekTime: 6.90},
+      {id: 'zWaIDP8Iero', seekTime: 6.80},
+      {id: 'rH5Gzhn0jyE', seekTime: 15.50},
+    ];
+
+    var selectedVideo = allVideos[Math.floor(Math.random() * allVideos.length)];
+
+    var isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints;
+
+    var tag = document.createElement('script');
+    tag.src = 'https://www.youtube.com/player_api';
+    var firstScriptTag = document.getElementsByTagName('script')[0];
+    firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+    var player;
+
+    function onYouTubePlayerAPIReady() {
+      player = new YT.Player('player', {
+        height: '100%',
+        width: '100%',
+        videoId: selectedVideo.id,
+        playerVars: {
+          'controls': 0,
+          'disablekb': 1,
+          'playsinline': 1,
+          'rel': 0,
+          'iv_load_policy': 3
+        },
+        events: {
+          'onReady': onPlayerReady,
+          'onStateChange': onPlayerStateChange
+        }
+      });
+    }
+
+    var btn = document.querySelector('.container .btn');
+    if (!isTouchDevice) {
+      document.querySelector('.container').classList.add('no-touch');
+      btn.addEventListener('mousedown', boom);
+    } else {
+      btn.addEventListener('touchstart', boom);
+    }
+
+    document.querySelector('.container .btn').style = 'display: none';
+
+    function onPlayerReady() {
+      player.setPlaybackQuality('small');
+      player.seekTo(17);
+      player.setVolume(0);
+      player.playVideo();
+
+      document.querySelector('.container .btn').style = '';
+
+      var currentVideoEl = document.querySelector('#currentVideo');
+      currentVideoEl.setAttribute('href', 'https://youtube.com/watch?v=' + selectedVideo.id);
+      currentVideoEl.innerText = player.getVideoData().title;
+
+      var loadingTitle = document.querySelector('.loading-title');
+      loadingTitle.parentNode.removeChild(loadingTitle);
+
+      document.querySelectorAll('.loading-content').forEach(function(e) {
+        e.classList.remove('loading-content');
+      });
+    }
+
+    function onPlayerStateChange(event) {
+      if (event.data == YT.PlayerState.ENDED) {
+        document.querySelector('.container').classList.remove('active');
+      }
+    }
+
+    function boom(e) {
+      e.preventDefault();
+
+      document.querySelector('.container').classList.add('active');
+
+      player.seekTo(selectedVideo.seekTime || 0);
+      player.setVolume(100);
+      player.playVideo();
+    }
+
+  </script>
+</body>
+</html>
